@@ -29,18 +29,12 @@ var _ handlers.Storage = Repository{}
 func (r Repository) Get(id string) (ev entities.Event, err error) {
 	query := get
 
-	var rows *sql.Rows
-	rows, err = r.db.Query(query, id)
+	err = r.db.QueryRow(query, id).Scan(&ev.ID, &ev.Title, &ev.Start, &ev.End, &ev.Address, &ev.Status)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		err = fmt.Errorf("no events found with ID %s", id)
 		return
 	case err != nil:
-		return
-	}
-
-	err = rows.Scan(&ev.ID, &ev.Title, &ev.Start, &ev.End, &ev.Address, &ev.Status)
-	if err != nil {
 		return
 	}
 
@@ -81,11 +75,25 @@ func (r Repository) List(from, to string) (ev []entities.Event, err error) {
 }
 
 func (r Repository) Delete(id string) error {
-	_, err := r.db.Exec(delete, id)
-	return err
+	res, err := r.db.Exec(delete, id)
+	if err != nil {
+		return err
+	}
+
+	i, err := res.RowsAffected()
+	switch {
+	case err != nil:
+		return err // rare thing but better check
+	case i == 1:
+		return nil
+	case i == 0:
+		return fmt.Errorf("no event with ID %s", id)
+	default:
+		return fmt.Errorf("weird thing with ID %s - %d entries was deleted", id, i)
+	}
 }
 
-func (r Repository) Upsert(te entities.TransportEvent) error {
+func (r Repository) Upsert(te entities.Event) error {
 	_, err := r.db.Exec(upsert, te.ID, te.Title, te.Start, te.End, te.Address, te.Status)
 	return err
 }

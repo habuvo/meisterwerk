@@ -12,15 +12,21 @@ type Storage interface {
 	Get(id string) (entities.Event, error)
 	List(start, end string) ([]entities.Event, error)
 	Delete(id string) error
-	Upsert(te entities.TransportEvent) error
+	Upsert(te entities.Event) error
 }
 
 type Controller struct {
 	Repository Storage
 }
 
+var _ Eventer = &Controller{}
+
 type Eventer interface {
 	Get() func(c *gin.Context)
+	List() func(c *gin.Context)
+	Delete() func(c *gin.Context)
+	Update() func(c *gin.Context)
+	Create() func(c *gin.Context)
 }
 
 func NewEventer(s Storage) Eventer {
@@ -71,27 +77,19 @@ func (h *Controller) List() func(c *gin.Context) {
 // Create persits the event given
 func (h *Controller) Create() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		var event entities.TransportEvent
-		err := c.Bind(event)
-		switch {
-		case err != nil:
-			c.JSON(http.StatusBadRequest, err.Error())
-			return
-		case event.Start == nil || event.End == nil:
-			c.JSON(http.StatusBadRequest, "empty time boundaries for the event is not allowed")
-			return
-		case !event.Status.Validate():
-			c.JSON(http.StatusBadRequest, "bad status")
-			return
-		}
-
-		err = timeParamsChecker(*event.Start, *event.End)
+		var event entities.Event
+		err := c.Bind(&event)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, err.Error())
 			return
 		}
-
 		event.ID = uuid.NewV4().String()
+
+		err = requiredFields(event)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, err.Error())
+			return
+		}
 
 		err = h.Repository.Upsert(event)
 		if err != nil {
@@ -106,21 +104,22 @@ func (h *Controller) Create() func(c *gin.Context) {
 // Update updates the event in the repository
 func (h *Controller) Update() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		var event entities.TransportEvent
-		err := c.Bind(event)
+		var event entities.Event
+		err := c.Bind(&event)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, err.Error())
+			return
+		}
 
-		switch {
-		case err != nil:
+		_, err = uuid.FromString(event.ID)
+		if err != nil {
 			c.JSON(http.StatusBadRequest, err.Error())
 			return
-		case uuid.FromStringOrNil(event.ID) == uuid.Nil:
-			c.JSON(http.StatusBadRequest, "bad ID")
-			return
-		case (event.Start != nil || event.End != nil) && timeParamsChecker(*event.Start, *event.End) != nil:
+		}
+
+		err = requiredFields(event)
+		if err != nil {
 			c.JSON(http.StatusBadRequest, err.Error())
-			return
-		case event.Status != nil && !event.Status.Validate():
-			c.JSON(http.StatusBadRequest, "bad status")
 			return
 		}
 
@@ -129,6 +128,7 @@ func (h *Controller) Update() func(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
+
 		c.JSON(http.StatusOK, event)
 	}
 }
@@ -143,12 +143,12 @@ func (h *Controller) Delete() func(c *gin.Context) {
 			return
 		}
 
-		event, err := h.Repository.Get(id)
+		err = h.Repository.Delete(id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		c.JSON(http.StatusOK, event)
+		c.JSON(http.StatusOK, id)
 	}
 }

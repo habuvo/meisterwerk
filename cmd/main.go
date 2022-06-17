@@ -32,5 +32,9 @@ func main() {
 }
 
 func registerRoutes(router *gin.Engine, events handlers.Eventer) {
-	router.GET("/events", events.Get())
+	router.GET("/event", events.Get())
+	router.GET("/events", events.List())
+	router.POST("/event", events.Create())
+	router.PUT("/event", events.Update())
+	router.DELETE("/event", events.Delete())
 }

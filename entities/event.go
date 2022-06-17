@@ -1,7 +1,5 @@
 package entities
 
-import "time"
-
 type Status string
 
 func (s Status) Validate() bool {
@@ -13,19 +11,10 @@ func (s Status) Validate() bool {
 }
 
 type Event struct {
-	ID      string    `json:"id"`
-	Title   string    `json:"title`
-	Start   time.Time `json:"start_time"`
-	End     time.Time `json:"end_time"`
-	Address string    `json:"address"`
-	Status  Status    `json:"status"`
-}
-
-type TransportEvent struct {
-	ID      string  `json:"id"`
-	Title   *string `json:"title, omitempty"`
-	Start   *string `json:"start, omitempty"`
-	End     *string `json:"end, omitempty"`
-	Address *string `json:"address, omitempty"`
-	Status  *Status `json:"status, omitempty"`
+	ID      string `json:"id"`
+	Title   string `json:"title`
+	Start   string `json:"start_time"`
+	End     string `json:"end_time"`
+	Address string `json:"address"`
+	Status  Status `json:"status"`
 }
