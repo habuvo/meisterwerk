@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
+	"go.uber.org/zap"
 )
 
 type Storage interface {
@@ -60,12 +61,14 @@ func (h *Controller) List() func(c *gin.Context) {
 		to := c.Request.URL.Query().Get("to")
 
 		if err := timeParamsChecker(from, to); err != nil {
+			zap.L().Error("time parameters check failed", zap.Error(err))
 			c.JSON(http.StatusBadRequest, err.Error())
 			return
 		}
 
 		events, err := h.Repository.List(from, to)
 		if err != nil {
+			zap.L().Error("repository operation failed", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
