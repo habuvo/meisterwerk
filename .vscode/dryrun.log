@@ -1,0 +1,9 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/habuvo/go/src/meisterwerk'
+echo "Generating mocks"
+sh generate_mocks.sh
+echo "Mocks generated!"
+go test ./...
+go build main.go
+make: Leaving directory '/home/habuvo/go/src/meisterwerk'
+ 

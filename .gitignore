@@ -1,0 +1,7 @@
+bin
+debug
+.env
+.terraform*
+.DS_Store
+*.pem
+*.srl

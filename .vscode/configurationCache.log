@@ -1,0 +1,1 @@
+{"buildTargets":["all","build","gen-certificate","gen-proto","migrate","mocks","rmEnv","run","setup","test"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}

@@ -1,0 +1,11 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:13.4-alpine3.14
+    container_name: meisterwerk_db
+    environment:
+      POSTGRES_DB: $DB_NAME
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASSWORD
+    ports:
+      - 5432:$DB_PORT
