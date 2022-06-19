@@ -2,11 +2,17 @@
 
 REST endpoints for this service are
 
-* GET /event with id as parameter
-* GET /events with from and to as boundaries parameters
+* GET /event with `id` as parameter
+* GET /events with `from` and `to` as boundaries parameters
 * POST /event with event as parameter in body with content type JSON header  - for creation
 * PUT /event with event as parameter in body with content type JSON header - for update
-* DELETE /event with id as parameter
+* DELETE /event with `id` as parameter
+
+Sample for PUT and POSt is:
+
+``` 
+curl -X PUT 'localhost:8080/event'    -H "Content-Type: application/json"    -d '{"id":"03d66078-8da3-4d8a-9169-a15d69731fde","Title":"first event","start_time":"2022-05-19 18:30","end_time":"2022-05-19 11:30","address":"none","status":"done"}'
+```
 
 Use `make setup` for prepare environmemt, `make migrate`  to init database with data and `make run` for service start
 
